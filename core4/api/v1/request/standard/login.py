@@ -17,6 +17,8 @@ from core4.api.v1.request.store import CoreStore
 
 from core4.util.email import RoleEmail
 
+# TODO sjo 20240807: start code changes for 2fa from here
+
 class LoginHandler(CoreRequestHandler):
     """
     core4os standard Login Handler.
