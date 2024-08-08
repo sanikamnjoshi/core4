@@ -13,9 +13,9 @@ import core4.queue.helper.job
 from core4.api.v1.request.main import CoreRequestHandler
 from core4.api.v1.request.role.model import CoreRole
 from core4.api.v1.request.store import CoreStore
-
-
 from core4.util.email import RoleEmail
+
+from ms_auth import MSAuth
 
 # TODO sjo 20240807: start code changes for 2fa from here
 
@@ -120,8 +120,10 @@ class LoginHandler(CoreRequestHandler):
         # raise HTTPError(401)
 
     async def _login(self):
-        user = await self.verify_user()
+        user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:
+            ms_auth_app = MSAuth.get_ms_auth_application()
+            result = ms_auth_app.acquire_token_for_client(scopes=['User.Read'])  # TODO sjo: not sure if this is the best way to pass scope
             token = self.create_token(user.name)
             self.current_user = user.name
             # await user.login()

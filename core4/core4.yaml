@@ -204,3 +204,7 @@ queue:
     minute: second
     second: millisecond
 
+ms_auth:
+  tenant_id:
+  client_id:  # same as app_id; in pillars
+  client_secret:

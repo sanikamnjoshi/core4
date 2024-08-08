@@ -45,6 +45,7 @@ setup(
         "feather-format==0.4.0",
         "cffi",
         "rpy2==3.0.5",
+        "msal==1.30.0",  # microsoft authentication library for 2fa
         "pql @ git+https://github.com/comfuture/pql.git"
     ],
     extras_require={
