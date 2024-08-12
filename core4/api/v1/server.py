@@ -16,7 +16,7 @@ and provides the following endpoints:
 * ``/core4/api/v1/roles`` - :class:`.RoleHandler`
 * ``/core4/api/v1/access`` - :class:`.AcceHandlerr`
 
-Additionally the server creates an endless loop to query collection
+Additionally, the server creates an endless loop to query collection
 ``sys.event`` continuously with :class:`.EventWatch` to support the
 :class:`.EventHandler`.
 

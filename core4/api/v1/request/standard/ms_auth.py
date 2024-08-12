@@ -9,10 +9,12 @@
 
 import msal
 from core4.base.main import CoreBase
+from core4.api.v1.request.main import CoreRequestHandler
+
 
 class MSAuth(CoreBase):
     """
-    funtions for authenticating users using Microsoft's authentication library for 2-factor authentication
+    functions for authenticating users using Microsoft's authentication library for 2-factor authentication
     """
 
     def get_ms_auth_application(self):
@@ -23,6 +25,7 @@ class MSAuth(CoreBase):
         # redirect_uri = self.config.ms_auth.redirect_uri  # TODO sjo 20240808 what do I add as the redirect uri?
         scope = ['User.Read']  # TODO sjo 20240808 is this needed? why is it in this specific format?
 
+        # create a client application
         app = msal.ConfidentialClientApplication(
             client_id=client_id,
             client_credential=client_secret,

@@ -15,11 +15,12 @@ from core4.api.v1.request.role.model import CoreRole
 from core4.api.v1.request.store import CoreStore
 from core4.util.email import RoleEmail
 
-from ms_auth import MSAuth
+from core4.api.v1.request.standard.ms_auth import MSAuth
+
 
 # TODO sjo 20240807: start code changes for 2fa from here
 
-class LoginHandler(CoreRequestHandler):
+class LoginHandler(CoreRequestHandler, MSAuth):
     """
     core4os standard Login Handler.
     """
@@ -51,7 +52,6 @@ class LoginHandler(CoreRequestHandler):
             return self.reply({"token": token})
         self.set_status(401)
         self.write_error(401)
-
 
     async def post(self):
         """
@@ -122,8 +122,21 @@ class LoginHandler(CoreRequestHandler):
     async def _login(self):
         user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:
-            ms_auth_app = MSAuth.get_ms_auth_application()
-            result = ms_auth_app.acquire_token_for_client(scopes=['User.Read'])  # TODO sjo: not sure if this is the best way to pass scope
+            ms_auth_app = MSAuth.get_ms_auth_application(self)
+            result = ms_auth_app.acquire_token_for_client(
+                scopes=['User.Read']  # TODO sjo: Does the claims_challenge parameter need to be added here?
+            )  # TODO sjo: not sure if this is the best way to pass scope
+
+            self.logger.debug("user [%s] authenticated", user.name)
+            self.logger.debug("result: %s", result)
+
+            if "access_token" in result:
+                ext_token = result["access_token"]
+                self.current_user = user.name
+                return ext_token
+
+            # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
+
             token = self.create_token(user.name)
             self.current_user = user.name
             # await user.login()
