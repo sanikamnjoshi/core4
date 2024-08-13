@@ -125,10 +125,10 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             ms_auth_app = MSAuth.get_ms_auth_application(self)
             result = ms_auth_app.acquire_token_for_client(
                 scopes=['User.Read']  # TODO sjo: Does the claims_challenge parameter need to be added here?
-            )  # TODO sjo: not sure if this is the best way to pass scope
+            )  # TODO sjo: not sure if this is the best way to pass the scope (or should I predefine it somewhere?)
 
-            self.logger.debug("user [%s] authenticated", user.name)
-            self.logger.debug("result: %s", result)
+            self.logger.info("user [%s] authenticated", user.name)
+            self.logger.info("result: %s", result)
 
             if "access_token" in result:
                 ext_token = result["access_token"]
