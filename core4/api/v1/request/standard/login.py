@@ -124,7 +124,8 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         if user:
             ms_auth_app = MSAuth.get_ms_auth_application(self)
             result = ms_auth_app.acquire_token_for_client(
-                scopes=['User.Read']  # TODO sjo: Does the claims_challenge parameter need to be added here?
+                scopes=['https://graph.microsoft.us/.default']  # TODO sjo: Does the claims_challenge parameter need to be added here?
+                # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
             )  # TODO sjo: not sure if this is the best way to pass the scope (or should I predefine it somewhere?)
 
             self.logger.info("user [%s] authenticated", user.name)
@@ -133,7 +134,10 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             if "access_token" in result:
                 ext_token = result["access_token"]
                 self.current_user = user.name
-                return ext_token
+                # return ext_token
+                self.logger.info("external token: %s", ext_token)
+                self.logger.info("user details are: {}".format(user))
+
 
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
 

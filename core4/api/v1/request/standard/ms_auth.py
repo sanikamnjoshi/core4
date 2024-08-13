@@ -32,6 +32,7 @@ class MSAuth(CoreBase):
         scope = ['User.Read']  # TODO sjo 20240808 is this needed? why is it in this specific format?
 
         # create a client application
+        # TODO sjo does this have to be a ConfidentialClientApplication class or can it be a ClientApplication class?
         app = msal.ConfidentialClientApplication(
             client_id=client_id,
             client_credential=client_secret,
