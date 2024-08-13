@@ -21,6 +21,12 @@ class MSAuth(CoreBase):
         client_id = self.config.ms_auth.client_id
         client_secret = self.config.ms_auth.client_secret
         tenant_id = self.config.ms_auth.tenant_id
+
+        # TODO sjo: printlining - remove later
+        self.logger.info("client id is %s", client_id)
+        self.logger.info("client secret is %s", client_secret)
+        self.logger.info("tenant id is %s", tenant_id)
+
         authority = 'https://login.microsoftonline.com/' + str(tenant_id)
         # redirect_uri = self.config.ms_auth.redirect_uri  # TODO sjo 20240808 what do I add as the redirect uri?
         scope = ['User.Read']  # TODO sjo 20240808 is this needed? why is it in this specific format?
