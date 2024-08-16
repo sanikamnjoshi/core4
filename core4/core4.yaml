@@ -205,6 +205,6 @@ queue:
     second: millisecond
 
 ms_auth:
-  tenant_id:
-  client_id:  # same as app_id; in pillars
-  client_secret:
+  tenant_id:  # id for serviceplan's instance of entra
+  client_id:  # id for the core4 application in entra; same as app_id
+  client_secret:  # a password used in conjunction with the tenant and client ids to authenticate the application when it makes requests to the entra endpoint

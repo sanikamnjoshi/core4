@@ -138,7 +138,6 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 self.logger.info("external token: %s", ext_token)
                 self.logger.info("user details are: {}".format(user))
 
-
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
 
             token = self.create_token(user.name)
