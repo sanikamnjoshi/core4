@@ -120,30 +120,38 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # raise HTTPError(401)
 
     async def _login(self):
+        ms_auth_app = MSAuth.get_ms_auth_application(self)
+
+        result = ms_auth_app.acquire_token_interactive(
+            scopes=['https://graph.microsoft.us/.default']
+            # TODO sjo: Does the claims_challenge parameter need to be added here?
+            # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
+        )
+
+
+
+        # result = ms_auth_app.acquire_token_for_client(
+        #     scopes=['https://graph.microsoft.us/.default']  # TODO sjo: Does the claims_challenge parameter need to be added here?
+        #     # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
+        # )  # TODO sjo: not sure if this is the best way to pass the scope (or should I predefine it somewhere?)
+
+        if "access_token" in result:
+            external_token = result["access_token"]
+            self.logger.info("external token: %s", external_token)
+            # return external_token
+
         user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:
-            ms_auth_app = MSAuth.get_ms_auth_application(self)
-            result = ms_auth_app.acquire_token_for_client(
-                scopes=['https://graph.microsoft.us/.default']  # TODO sjo: Does the claims_challenge parameter need to be added here?
-                # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
-            )  # TODO sjo: not sure if this is the best way to pass the scope (or should I predefine it somewhere?)
-
+            internal_token = self.create_token(user.name)
+            # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
+            self.current_user = user.name
+            # await user.login()  # TODO what does this do in the OG code?
+            self.current_user = user.name
             self.logger.info("user [%s] authenticated", user.name)
             self.logger.info("result: %s", result)
+            self.logger.info("user details are: {}".format(user))
+            return internal_token
 
-            if "access_token" in result:
-                ext_token = result["access_token"]
-                self.current_user = user.name
-                # return ext_token
-                self.logger.info("external token: %s", ext_token)
-                self.logger.info("user details are: {}".format(user))
-
-            # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
-
-            token = self.create_token(user.name)
-            self.current_user = user.name
-            # await user.login()
-            return token
         return None
 
     async def put(self):
