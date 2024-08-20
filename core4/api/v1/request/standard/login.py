@@ -128,8 +128,6 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
         )
 
-
-
         # result = ms_auth_app.acquire_token_for_client(
         #     scopes=['https://graph.microsoft.us/.default']  # TODO sjo: Does the claims_challenge parameter need to be added here?
         #     # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
@@ -145,7 +143,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             internal_token = self.create_token(user.name)
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
             self.current_user = user.name
-            # await user.login()  # TODO what does this do in the OG code?
+            # await user.login()  # TODO what does this do in the OG code? A: updates last_login attrib for a user
             self.current_user = user.name
             self.logger.info("user [%s] authenticated", user.name)
             self.logger.info("result: %s", result)
