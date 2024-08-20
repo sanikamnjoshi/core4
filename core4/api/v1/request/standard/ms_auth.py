@@ -45,4 +45,10 @@ class MSAuth(CoreBase):
             authority=authority
         )
 
+        self.logger.info(
+            "the object attributes of the app object are:"
+        )
+        for attr, value in vars(app).items():
+            self.logger.info(f"{attr}: {value}")
+
         return app
