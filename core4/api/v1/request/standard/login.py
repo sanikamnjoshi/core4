@@ -120,6 +120,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # raise HTTPError(401)
 
     async def _login(self):
+        self.logger.info("***************************************** _login method called woop woop")
         ms_auth_app = MSAuth.get_ms_auth_application(self)
 
         self.logger.info("***************************************** ms_auth_app is %s", ms_auth_app)

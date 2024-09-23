@@ -39,6 +39,8 @@ class MSAuth(CoreBase):
         #     authority=authority
         # )
 
+        self.logger.info("################################# msal.PublicClientApplication is about to be instantiated")
+
         # public applicaton
         app = msal.PublicClientApplication(
             client_id=client_id,
