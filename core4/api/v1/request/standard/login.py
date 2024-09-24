@@ -120,30 +120,22 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # raise HTTPError(401)
 
     async def _login(self):
-        self.logger.info("***************************************** _login method called woop woop")
-        ms_auth_app = MSAuth.get_ms_auth_application(self)
-
-        self.logger.info("***************************************** ms_auth_app is %s", ms_auth_app)
-        self.logger.info("***************************************** acquire_token_interactive about to be called")
-        result = ms_auth_app.acquire_token_interactive(
-            scopes=['https://graph.microsoft.us/.default']
+        app = MSAuth.get_ms_auth_application(self)
+        result = app.acquire_token_interactive(
+            scopes=['User.Read'],
+            port=5000
+            #redirect_uri='http://localhost:5001/core4/api/v1/login'
+            #scopes=['https://graph.microsoft.us/.default']
             # TODO sjo: Does the claims_challenge parameter need to be added here?
             # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
         )
-
-        self.logger.info("***************************************** result is %s", result)
-
-        # result = ms_auth_app.acquire_token_for_client(
-        #     scopes=['https://graph.microsoft.us/.default']  # TODO sjo: Does the claims_challenge parameter need to be added here?
-        #     # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
-        # )  # TODO sjo: not sure if this is the best way to pass the scope (or should I predefine it somewhere?)
 
         if "access_token" in result:
             external_token = result["access_token"]
             self.logger.info("external token: %s", external_token)
             # return external_token
-
-        self.logger.info("***************************************** result is %s", result)
+        else:
+            self.logger.info("Error: %s , descr: %s", result["error"], result["error_description"])
 
         user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:

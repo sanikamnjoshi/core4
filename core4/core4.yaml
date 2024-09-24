@@ -102,9 +102,9 @@ api:
     cookie_secret: a not so secret cookie secret  # must be set
   crt_file: ~
   key_file: ~
-  route: 0.0.0.0 # TODO sjo: changed temporarily from localhost - please change back later!!!
+  route: localhost # TODO sjo: changed temporarily from localhost - please change back later!!! removed 0.0.0.0
   allow_origin: "*"
-  port: 5001
+  port: 5001  # TODO changed from 5001 to 5000, do change back later
   default_static: api/v1/request/_static
   error_html_page: standard/template/error.html
   error_text_page: standard/template/error.txt

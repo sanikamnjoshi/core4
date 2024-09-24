@@ -21,36 +21,17 @@ class MSAuth(CoreBase):
         client_id = self.config.ms_auth.client_id
         client_secret = self.config.ms_auth.client_secret
         tenant_id = self.config.ms_auth.tenant_id
+        #authority = 'https://login.microsoftonline.com/' + str(tenant_id)
+        authority = 'https://login.microsoftonline.com/common'
 
-        # TODO sjo: printlining - remove later
-        self.logger.info("***************************************** client id is %s", client_id)
-        self.logger.info("***************************************** client secret is %s", client_secret)
-        self.logger.info("***************************************** tenant id is %s", tenant_id)
-
-        authority = 'https://login.microsoftonline.com/' + str(tenant_id)
         # redirect_uri = self.config.ms_auth.redirect_uri  # TODO sjo 20240808 what do I add as the redirect uri?
         # scope = ['User.Read']  # TODO sjo 20240808 is this needed? why is it in this specific format?
 
-        # # create a client application
-        # # TODO sjo does this have to be a ConfidentialClientApplication class or can it be a ClientApplication class?
-        # app = msal.ConfidentialClientApplication(
-        #     client_id=client_id,
-        #     client_credential=client_secret,
-        #     authority=authority
-        # )
-
-        self.logger.info("################################# msal.PublicClientApplication is about to be instantiated")
-
-        # public applicaton
+        # create a confidential client application
+        # the alternative is to create a public application with msal.PublicClientApplication, but then it won't accept a client_secret and the acquire_token_interactive method won't work
         app = msal.PublicClientApplication(
             client_id=client_id,
             authority=authority
         )
-
-        self.logger.info(
-            "the object attributes of the app object are:"
-        )
-        for attr, value in vars(app).items():
-            self.logger.info(f"{attr}: {value}")
 
         return app
