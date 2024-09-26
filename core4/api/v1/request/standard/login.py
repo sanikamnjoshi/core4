@@ -32,6 +32,7 @@ class LoginHandler(CoreRequestHandler):
         login = True
         if "reset" in self.request.path:
             login = False
+        # TODO sjo 27.08.2024: check conf to see if 2fa-flag is enabled
         await self.getter(login)
 
     async def getter(self, login=True):
@@ -40,6 +41,8 @@ class LoginHandler(CoreRequestHandler):
             params = {
                 "login_url": store["doc"]["login"],
                 "reset_url": store["doc"]["reset"]
+                # TODO sjo 27.08.2024: define a new template for 2fa
+                # TODO sjo 27.08.2024: build a switch for 2fa in the get method that checks the flag and opens the correct tempalte
             }
             if login:
                 return self.render("template/login.html", **params)
