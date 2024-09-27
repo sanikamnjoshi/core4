@@ -218,6 +218,8 @@ class CoreBaseHandler(CoreBase):
 
         :return: verified username
         """
+        # NOTE sjo: verify_user() is called before the core4 login page even loads for the first time
+
         auth_header = self.request.headers.get('Authorization')
         username = password = None
         token = None
