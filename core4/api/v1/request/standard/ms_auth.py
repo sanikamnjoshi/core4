@@ -22,16 +22,14 @@ class MSAuth(CoreBase):
         client_secret = self.config.ms_auth.client_secret
         tenant_id = self.config.ms_auth.tenant_id
         authority = 'https://login.microsoftonline.com/' + str(tenant_id)
-        #authority = 'https://login.microsoftonline.com/common'
 
-        # redirect_uri = self.config.ms_auth.redirect_uri  # TODO sjo 20240808 what do I add as the redirect uri?
-        # scope = ['User.Read']  # TODO sjo 20240808 is this needed? why is it in this specific format?
+        # redirect_uri = self.config.ms_auth.redirect_uri  # TODO sjo is this needed? what do I add as the redirect uri?
 
-        # create a confidential client application
-        # the alternative is to create a public application with msal.PublicClientApplication, but then it won't accept a client_secret and the acquire_token_interactive method won't work
+        # create a public client application
         app = msal.PublicClientApplication(
             client_id=client_id,
-            authority=authority
+            authority=authority,
+            client_credential=None
         )
 
         return app

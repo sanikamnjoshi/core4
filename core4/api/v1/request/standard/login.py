@@ -120,36 +120,40 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # raise HTTPError(401)
 
     async def _login(self):
-        app = MSAuth.get_ms_auth_application(self)
-        result = app.acquire_token_interactive(
-            scopes=['User.Read'],
-            port=5000
-            #redirect_uri='http://localhost:5001/core4/api/v1/login'
-            #scopes=['https://graph.microsoft.us/.default']
-            # TODO sjo: Does the claims_challenge parameter need to be added here?
-            # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
-        )
-
-        if "access_token" in result:
-            external_token = result["access_token"]
-            self.logger.info("external token: %s", external_token)
-            # return external_token
-        else:
-            self.logger.info("Error: %s , descr: %s", result["error"], result["error_description"])
 
         user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:
             internal_token = self.create_token(user.name)
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
             self.current_user = user.name
-            # await user.login()  # TODO what does this do in the OG code? A: updates last_login attrib for a user
-            self.current_user = user.name
-            self.logger.info("user [%s] authenticated", user.name)
-            self.logger.info("result: %s", result)
-            self.logger.info("user details are: {}".format(user))
-            return internal_token
+            self.logger.info("user [%s] is a core4 user", user.name)
 
-        return None
+
+            app = MSAuth.get_ms_auth_application(self)
+            scopes = ['email', 'User.Read']
+            result = app.acquire_token_interactive(
+                scopes=scopes
+                # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
+                #redirect_uri='http://localhost:5001/core4/api/v1/login'  # TODO sjo is this needed?
+                # TODO sjo: Does the claims_challenge parameter need to be added here?
+            )
+
+            if "access_token" in result:
+                external_token = result["access_token"]
+                #await user.login()  # updates last_login attrib for a user
+                # TODO sjo: will have to reintroduce user.login()
+                if "email" in result.id_token_claims:
+                    if self.current_user == result.id_token_claims["email"]:
+                        self.logger.info("user [%s] is a Microsoft user", result.id_token_claims["email"])
+                        #return external_token
+                        return internal_token
+                        # TODO sjo: make the function return both internal and external tokens AND..
+                        # TODO sjo: make the calling functions capable of handling both tokens
+            else:
+                self.logger.info("Error: %s , descr: %s", result["error"], result["error_description"])
+
+        else:
+            return None
 
     async def put(self):
         """
