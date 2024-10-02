@@ -122,13 +122,14 @@ class LoginHandler(CoreRequestHandler, MSAuth):
     async def _login(self):
 
         # TODO sjo MAJOR!!! - remove the password aspect for SSO users
+        # TODO ajo: the domain(s) for determining whether a user is internal or external CANNOT be hardcoded and need(s) to be added to the config yaml
+        user = await self.verify_user()
 
-        user = await self.verify_user()  # TODO sjo: keep this bit - maybe we will do core4 verification first
         if user:
             internal_token = self.create_token(user.name)
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
             self.current_user = user.name
-            self.logger.info("user %s is a core4 user", self.current_user)  # TODO sjo try catch here
+            self.logger.info("User {} is a core4 user.".format(self.current_user))  # TODO sjo try catch here
 
             app = MSAuth.get_ms_auth_application(self)
             scopes = ['email', 'User.Read']
@@ -139,19 +140,19 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             # TODO sjo: Does the redirect_uri (zB = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
 
             #if "access_token" in result:
-            if "id_token_claims" in result:
-                external_token = result["access_token"]
+            # TODO sjo: do I even need the access token, given that I won't be using microsofts graph api / applications?
+            if "id_token" in result:
+                external_token = result["id_token"]
                 if "email" in result["id_token_claims"]:
                     if self.current_user == str(result["id_token_claims"]["email"]):
-                        self.logger.info("%s - SSO validated", result["id_token_claims"]["email"])
+                        self.logger.info("User {} has been SSO validated".format(self.current_user))
                         await user.login()  # updates last_login attrib for a user
-                        # TODO sjo: will have to reintroduce user.login()
                         #return external_token
                         return internal_token
                         # TODO sjo: make the function return both internal and external tokens AND..
                         # TODO sjo: make the calling functions capable of handling both tokens
             else:
-                self.logger.info("Error: %s , descr: %s", result["error"], result["error_description"])
+                self.logger.info("SSO validation failed.\nError: {}\n descr: {}".format(result["error"], result["error_description"]))
 
         else:
             return None

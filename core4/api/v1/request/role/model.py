@@ -187,18 +187,19 @@ class CoreRole(CoreBase):
         """
         :return: verify a valid role (no email and password) or a valid
                  user role (email and password).
-                 When the user is initialy created, he does not need a password
+                 When the user is initially created, he does not need a password
                  yet. It will be set prior to logging in via a token provided
                  by email.
         """
+
+        # TODO sjo: this will again have to be altered to allow for SSO users without passwords
         has_password = bool(self.password)
         has_email = bool(self.email)
         if initial:
             if not (has_email == has_password or has_email):
                 raise AttributeError("user role requires email on creation")
-        elif ((not (has_password and has_email))
-                and (has_password or has_email)):
-            raise AttributeError("user role requires email and password")
+        elif has_password ^ has_email:  # xor
+            raise AttributeError("user role requires both email and password")
 
     async def save(self, initial=False):
         """
