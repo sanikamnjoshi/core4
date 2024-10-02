@@ -117,7 +117,7 @@ api:
     refresh: 3600  # 1h
     algorithm: HS512
     secret: secret
-  admin_username: sanikamnjoshi@hotmail.com  # TODO sjo: changed temporarily from admin - change back later!!!
+  admin_username: admin  # TODO sjo: changed temporarily from admin - change back later!!!
   admin_realname: admin user
   admin_password: admin  # must be set
   user_rolename: standard_user

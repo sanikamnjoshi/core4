@@ -130,23 +130,22 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             self.current_user = user.name
             self.logger.info("user %s is a core4 user", self.current_user)  # TODO sjo try catch here
 
-
             app = MSAuth.get_ms_auth_application(self)
             scopes = ['email', 'User.Read']
             result = app.acquire_token_interactive(
-                scopes=scopes
-                # more on scopes: https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
-                #redirect_uri='http://localhost:5001/core4/api/v1/login'  # TODO sjo is this needed?
-                # TODO sjo: Does the claims_challenge parameter need to be added here?
+                scopes=scopes  # https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
             )
+            # TODO sjo: Does the claims_challenge parameter need to be added here?
+            # TODO sjo: Does the redirect_uri (zB = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
 
-            if "access_token" in result:
+            #if "access_token" in result:
+            if "id_token_claims" in result:
                 external_token = result["access_token"]
-                #await user.login()  # updates last_login attrib for a user
-                # TODO sjo: will have to reintroduce user.login()
                 if "email" in result["id_token_claims"]:
                     if self.current_user == str(result["id_token_claims"]["email"]):
-                        self.logger.info("%s - SSO validated", result.id_token_claims["email"])
+                        self.logger.info("%s - SSO validated", result["id_token_claims"]["email"])
+                        await user.login()  # updates last_login attrib for a user
+                        # TODO sjo: will have to reintroduce user.login()
                         #return external_token
                         return internal_token
                         # TODO sjo: make the function return both internal and external tokens AND..
