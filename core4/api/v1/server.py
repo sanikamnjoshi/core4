@@ -16,7 +16,7 @@ and provides the following endpoints:
 * ``/core4/api/v1/roles`` - :class:`.RoleHandler`
 * ``/core4/api/v1/access`` - :class:`.AcceHandlerr`
 
-Additionally, the server creates an endless loop to query collection
+Additionally the server creates an endless loop to query collection
 ``sys.event`` continuously with :class:`.EventWatch` to support the
 :class:`.EventHandler`.
 
@@ -116,6 +116,8 @@ class CoreApiServer(CoreApiContainer):
         (r'/log/?', LogHandler, None, "LogHandler"),
 
         (r"/login", LoginHandler),
+        # TODO sjo: do I need to add a separate endpoint for login_2fa?
+        (r"/login2fa", LoginHandler),
         (r"/reset", LoginHandler),
         (r"/logout", LogoutHandler),
 

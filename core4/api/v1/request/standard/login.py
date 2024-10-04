@@ -44,14 +44,21 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 "login_url": store["doc"]["login"],
                 "reset_url": store["doc"]["reset"]
             }
+            # TODO sjo: what does defining params do? is this necessary for login_2fa?
             if login:
-                return self.render("template/login.html", **params)
-            return self.render("template/reset.html", **params)
+                is_2fa_login = self.config.api.is_2fa_login
+                if is_2fa_login:
+                    return self.render("template/login2fa.html", **params)
+                else:  # I think redundant else's make the code more readable
+                    return self.render("template/login.html", **params)
+            else:
+                return self.render("template/reset.html", **params)
         token = await self._login()
         if token:
             return self.reply({"token": token})
         self.set_status(401)
         self.write_error(401)
+
 
     async def post(self):
         """
