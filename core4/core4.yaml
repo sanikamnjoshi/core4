@@ -117,7 +117,7 @@ api:
     refresh: 3600  # 1h
     algorithm: HS512
     secret: secret
-  login_2fa: False  # two factor authentication the default (for open source core4) is False - needs to be set to True for production TODO sjo - IN PILLARS?
+  is_2fa_login: False  # two factor authentication the default (for open source core4) is False - needs to be set to True for production TODO sjo - IN PILLARS?
   admin_username: admin
   admin_realname: admin user
   admin_password: admin  # must be set

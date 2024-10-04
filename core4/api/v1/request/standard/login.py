@@ -44,8 +44,8 @@ class LoginHandler(CoreRequestHandler):
                 "reset_url": store["doc"]["reset"]
             }
             if login:
-                login_2fa = self.config.api.login_2fa
-                if login_2fa:
+                is_2fa_login = self.config.api.is_2fa_login
+                if is_2fa_login:
                     return self.render("template/login_2fa.html", **params)
                 else:  # I think redundant else's make the code more readable
                     return self.render("template/login.html", **params)
