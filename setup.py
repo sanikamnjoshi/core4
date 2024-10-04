@@ -46,6 +46,10 @@ setup(
         "cffi",
         "rpy2==3.0.5",
         "msal==1.30.0",  # microsoft authentication library for 2fa
+        "pyotp==2.9.0",  # for totp for 2fa
+        "qrcode==7.4.2",  # for generating qr codes for authenticator apps for totp
+        "pyqrcode==1.2.1",  # for generating qr codes for authenticator apps for totp
+        # TODO sjo keep one of these 2 qr code libraries. we don't need both.
         "pql @ git+https://github.com/comfuture/pql.git"
     ],
     extras_require={

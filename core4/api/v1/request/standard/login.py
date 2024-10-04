@@ -16,6 +16,10 @@ from core4.api.v1.request.store import CoreStore
 from core4.util.email import RoleEmail
 
 from core4.api.v1.request.standard.ms_auth import MSAuth
+import pyotp
+import time
+
+IS_2FA_LOGIN = None
 
 class LoginHandler(CoreRequestHandler, MSAuth):
     """
@@ -43,8 +47,9 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             }
             # TODO sjo QUESTION: what does defining params do? is this necessary for login_2fa?
             if login:
-                is_2fa_login = self.config.api.is_2fa_login
-                if is_2fa_login:
+                global IS_2FA_LOGIN
+                IS_2FA_LOGIN = self.config.api.is_2fa_login
+                if IS_2FA_LOGIN:
                     return self.render("template/login.html", **params)
                     # TODO sjo ERROR: should actually be login_2fa.html, but I am not smart enough at frontend to implement that page
                     # TODO sjo ERROR FRONTEND: the login2fa.html page loads, but the uname, pwd fields are unusable.
@@ -130,50 +135,68 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # TODO sjo MAJOR: remove the password aspect for SSO users
         # TODO sjo FRONTEND: this is highly highly dependent on the frontend.
 
-        username = self.get_argument("username", default=None)
-        domain = username.split("@")[1] if "@" in username else None
-        sso_domain = self.config.api.sso_domain
+        if IS_2FA_LOGIN:
 
-        if domain == sso_domain:
-            app = MSAuth.get_ms_auth_application(self)
-            scopes = ['email', 'User.Read']
-            result = app.acquire_token_interactive(
-                scopes=scopes  # https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
-            )
-            # TODO sjo QUESTION: Does the claims_challenge parameter need to be added here?
-            # TODO sjo QUESTION: Does the redirect_uri (z.B. = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
+            username = self.get_argument("username", default=None)
+            domain = username.split("@")[1] if "@" in username else None
+            sso_domain = self.config.api.sso_domain
+
+            if domain == sso_domain:  # SSO user
+                app = MSAuth.get_ms_auth_application(self)
+                scopes = ['email', 'User.Read']
+                result = app.acquire_token_interactive(
+                    scopes=scopes  # https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
+                )
+                # TODO sjo QUESTION: Does the claims_challenge parameter need to be added here?
+                # TODO sjo QUESTION: Does the redirect_uri (z.B. = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
 
 
-            # TODO sjo QUESTION: I do need an id_token, but do I even need ane access_token, given that I won't be using microsoft's graph api / applications?
-            if "id_token" in result:
-                external_token = result["id_token"]
-                if "email" in result["id_token_claims"]:
-                    if username == str(result["id_token_claims"]["email"]):
-                        self.logger.info(f"User {username} has been SSO validated")
-            else:
-                self.logger.info(
-                    f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
-                # TODO sjo FRONTEND: this error needs to show on the login page
+                # TODO sjo QUESTION: I do need an id_token, but do I even need ane access_token, given that I won't be using microsoft's graph api / applications?
+                if "id_token" in result:
+                    external_token = result["id_token"]
+                    if "email" in result["id_token_claims"]:
+                        if username == str(result["id_token_claims"]["email"]):
+                            self.logger.info(f"User {username} has been SSO validated")
+                else:
+                    self.logger.info(
+                        f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
+                    # TODO sjo FRONTEND: this error needs to show on the login page
+            else:  # not an SSO user
+                pass
+                # TODO sjo FRONT: the password field pops up only if the user is external
+                # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
 
+                user = await self.verify_user()
+                if user:  # valid core4 user
+                    key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry
+                    totp = pyotp.TOTP(key)
+                    if totp.verify(input("Enter code: ")):
+                        print("Valid code")
+                        # TODO sjo 07.10.2024 VERY VERY MAJOR!!! how will our TOTPs ever sync if our system's set to a different timezone???
+                        # we would need to think about timezones in general!!!
+                        internal_token = self.create_token(user.name)
+                        self.current_user = user.name
+                        self.logger.info(f"User {self.current_user} is a core4 user.")
+                        await user.login()
+                        return internal_token
+                    else:
+                        print("Invalid code")
+                        return None
         else:
-            pass
-            # TODO sjo FRONT: the password field pops up only if the user is external
-            # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
+            user = await self.verify_user()
 
-        user = await self.verify_user()
-
-        if user:  # valid core4 user
-            internal_token = self.create_token(user.name)
-            # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
-            self.current_user = user.name
-            self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
-            await user.login()  # updates last_login attrib for a user
-            return internal_token
-            # return external_token
-            # TODO sjo: make the function return both internal and external tokens AND..
-            # TODO sjo: make the calling functions capable of handling both tokens
-        else:  # not a valid core4 user
-            return None
+            if user:  # valid core4 user
+                internal_token = self.create_token(user.name)
+                # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
+                self.current_user = user.name
+                self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
+                await user.login()  # updates last_login attrib for a user
+                return internal_token
+                # return external_token
+                # TODO sjo: make the function return both internal and external tokens AND..
+                # TODO sjo: make the calling functions capable of handling both tokens
+            else:  # not a valid core4 user
+                return None
 
     async def put(self):
         """
