@@ -289,8 +289,7 @@ class CoreBaseHandler(CoreBase):
                 if user and user.verify_password(password):
                     self.token_exp = None
                     self.logger.debug(
-                        "successfully loaded [%s] by [%s] from [%s]",
-                        username, *source)
+                        f"successfully loaded [{username}] from [{source}]")
                     await user.login()
                     return user
         elif username and not password:  # for SSO users:
