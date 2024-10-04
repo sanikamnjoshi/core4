@@ -102,9 +102,9 @@ api:
     cookie_secret: a not so secret cookie secret  # must be set
   crt_file: ~
   key_file: ~
-  route: localhost # TODO sjo: changed temporarily from localhost - change back later!!! removed 0.0.0.0
+  route: localhost
   allow_origin: "*"
-  port: 5001  # TODO changed from 5001 to 5000, do change back later
+  port: 5001
   default_static: api/v1/request/_static
   error_html_page: standard/template/error.html
   error_text_page: standard/template/error.txt
@@ -117,7 +117,8 @@ api:
     refresh: 3600  # 1h
     algorithm: HS512
     secret: secret
-  admin_username: admin  # TODO sjo: changed temporarily from admin - change back later!!!
+  is_2fa_login: False  # two factor authentication the default (for open source core4) is False - needs to be set to True for production TODO sjo - IN PILLARS?
+  admin_username: admin
   admin_realname: admin user
   admin_password: admin  # must be set
   user_rolename: standard_user
