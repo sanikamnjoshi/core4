@@ -174,7 +174,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             internal_token = self.create_token(user.name)
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
             self.current_user = user.name
-            self.logger.info("User {} is a core4 user.".format(self.current_user))  # TODO sjo try catch here
+            self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
             return internal_token
 
         else:
