@@ -17,9 +17,6 @@ from core4.util.email import RoleEmail
 
 from core4.api.v1.request.standard.ms_auth import MSAuth
 
-
-# TODO sjo 20240807: start code changes for 2fa from here
-
 class LoginHandler(CoreRequestHandler, MSAuth):
     """
     core4os standard Login Handler.
@@ -35,7 +32,6 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         login = True
         if "reset" in self.request.path:
             login = False
-        # TODO sjo 27.08.2024: check conf to see if 2fa-flag is enabled
         await self.getter(login)
 
     async def getter(self, login=True):
@@ -45,13 +41,14 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 "login_url": store["doc"]["login"],
                 "reset_url": store["doc"]["reset"]
             }
-            # TODO sjo: what does defining params do? is this necessary for login_2fa?
+            # TODO sjo QUESTION: what does defining params do? is this necessary for login_2fa?
             if login:
                 is_2fa_login = self.config.api.is_2fa_login
-                # TODO sjo ERROR: the login2fa.html page loads, but the uname, pwd fields are unusable. am setting the flag to false for now so that I can continue w backend changes.
                 if is_2fa_login:
-                    return self.render("template/login2fa.html", **params)
-                else:  # I think redundant else's make the code more readable
+                    return self.render("template/login.html", **params)
+                    # TODO sjo ERROR: should actually be login_2fa.html, but I am not smart enough at frontend to implement that page
+                    # TODO sjo ERROR FRONTEND: the login2fa.html page loads, but the uname, pwd fields are unusable.
+                else:
                     return self.render("template/login.html", **params)
             else:
                 return self.render("template/reset.html", **params)
@@ -130,10 +127,11 @@ class LoginHandler(CoreRequestHandler, MSAuth):
 
     async def _login(self):
 
-        username = self.get_argument("username", default=None)
-        password = self.get_argument("password", default=None)
-        domain = username.split("@")[1] if "@" in username else None
+        # TODO sjo MAJOR: remove the password aspect for SSO users
+        # TODO sjo FRONTEND: this is highly highly dependent on the frontend.
 
+        username = self.get_argument("username", default=None)
+        domain = username.split("@")[1] if "@" in username else None
         sso_domain = self.config.api.sso_domain
 
         if domain == sso_domain:
@@ -142,43 +140,39 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             result = app.acquire_token_interactive(
                 scopes=scopes  # https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc
             )
-            # TODO sjo: Does the claims_challenge parameter need to be added here?
-            # TODO sjo: Does the redirect_uri (zB = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
+            # TODO sjo QUESTION: Does the claims_challenge parameter need to be added here?
+            # TODO sjo QUESTION: Does the redirect_uri (z.B. = 'http://localhost:5001/core4/api/v1/login') parameter need to be added here?
 
-            # if "access_token" in result:
-            # TODO sjo: do I even need the access token, given that I won't be using microsofts graph api / applications?
+
+            # TODO sjo QUESTION: I do need an id_token, but do I even need ane access_token, given that I won't be using microsoft's graph api / applications?
             if "id_token" in result:
                 external_token = result["id_token"]
                 if "email" in result["id_token_claims"]:
                     if username == str(result["id_token_claims"]["email"]):
                         self.logger.info(f"User {username} has been SSO validated")
-                        #await user.login()  # updates last_login attrib for a user
-                        # TODO sjo: add user.login() after core4 validation is successful
-                        # return external_token
-                        #return internal_token
-                        # TODO sjo: make the function return both internal and external tokens AND..
-                        # TODO sjo: make the calling functions capable of handling both tokens
             else:
                 self.logger.info(
                     f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
-                # TODO sjo FRONT: this error needs to show on the login page
+                # TODO sjo FRONTEND: this error needs to show on the login page
 
         else:
-            # TODO: password field and validation for external users
             pass
+            # TODO sjo FRONT: the password field pops up only if the user is external
+            # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
 
-        # TODO sjo MAJOR!!! - remove the password aspect for SSO users
-        # TODO ajo: the domain(s) for determining whether a user is internal or external CANNOT be hardcoded and need(s) to be added to the config yaml
         user = await self.verify_user()
 
-        if user:
+        if user:  # valid core4 user
             internal_token = self.create_token(user.name)
             # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
             self.current_user = user.name
             self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
+            await user.login()  # updates last_login attrib for a user
             return internal_token
-
-        else:
+            # return external_token
+            # TODO sjo: make the function return both internal and external tokens AND..
+            # TODO sjo: make the calling functions capable of handling both tokens
+        else:  # not a valid core4 user
             return None
 
     async def put(self):

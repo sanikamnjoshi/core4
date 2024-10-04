@@ -218,8 +218,7 @@ class CoreBaseHandler(CoreBase):
 
         :return: verified username
         """
-        # NOTE sjo: verify_user() is called before the core4 login page even loads for the first time
-        # TODO sjo: should this be the function that checks whether the user is intern/extern and then decides whether to ask for a password or head to SSO? or should I build this in login.py?
+        # TODO sjo NOTE: verify_user() is called before the core4 login page even loads for the first time
 
         auth_header = self.request.headers.get('Authorization')
         # NOTE sjo: "Authorization" seems to be added to the header once the user has successfully logged in
@@ -241,7 +240,7 @@ class CoreBaseHandler(CoreBase):
             token = self.get_argument("token", default=None, remove=True)
             username = self.get_argument("username", default=None, remove=True)
             password = self.get_argument("password", default=None, remove=True)
-            # TODO sjo: this is where the password is
+            # TODO sjo NOTE: this is where the password is
             if token is not None:
                 source = ("token", "args")
             elif username and password:
@@ -277,7 +276,7 @@ class CoreBaseHandler(CoreBase):
                     return user
         # NOTE sjo: I can't simply erase the password aspect. need to compartmentalise so that non-SSO users still need their password...
         # NOTE sjo: additionally, the is_2fa flag needs to be considered EVERYWHERE(really, everywhere?) so that self-hosted core4 instances can have basic auth
-        # TODO sjo: for testing SSO for now, I add a breakpoint here and set password to None
+        # TODO sjo NOTE: for testing SSO for now, I add a breakpoint here and set password to None
         elif username and password:
             username = re.compile("^" + re.escape(username), re.IGNORECASE)
             try:
@@ -293,7 +292,7 @@ class CoreBaseHandler(CoreBase):
                     await user.login()
                     return user
         elif username and not password:  # for SSO users:
-            # TODO sjo: code to just verify that the core4 user exists (don't need to additionally verify that they are in internal users, since this piece of code should only be reachable in case of internal users with hoc addresses)
+            # TODO sjo NOTE: code to just verify that the core4 user exists (don't need to additionally verify that they are in internal users, since this piece of code should only be reachable in case of internal users with hoc addresses)
             username = re.compile("^" + re.escape(username), re.IGNORECASE)
             try:
                 user = await CoreRole.find_one(name=username)
