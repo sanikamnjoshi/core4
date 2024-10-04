@@ -35,6 +35,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         login = True
         if "reset" in self.request.path:
             login = False
+        # TODO sjo 27.08.2024: check conf to see if 2fa-flag is enabled
         await self.getter(login)
 
     async def getter(self, login=True):

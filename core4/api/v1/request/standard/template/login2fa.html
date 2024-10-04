@@ -25,7 +25,8 @@
 
       box-shadow: inset 17px 0px 50px 0px var(--v-accent-darken2);
       overflow: hidden;
-      background-color: var(--v-accent-base);
+      //background-color: var(--v-accent-base);
+      background-color: blue;  // TODO sjo: change to var(--v-accent-base) after testing
       position: relative;
     }
 
@@ -187,7 +188,7 @@
           this.errorLogin = false;
           this.$validator.validateAll().then(valid => {
             console.log(valid, 'valid');
-            
+
             if (valid) {
 
 
