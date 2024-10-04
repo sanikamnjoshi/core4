@@ -48,6 +48,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
             # TODO sjo: what does defining params do? is this necessary for login_2fa?
             if login:
                 is_2fa_login = self.config.api.is_2fa_login
+                # TODO sjo ERROR: the login2fa.html page loads, but the uname, pwd fields are unusable. am setting the flag to false for now so that I can continue w backend changes.
                 if is_2fa_login:
                     return self.render("template/login2fa.html", **params)
                 else:  # I think redundant else's make the code more readable
