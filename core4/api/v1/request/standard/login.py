@@ -40,13 +40,13 @@ class LoginHandler(CoreRequestHandler):
             store = await CoreStore.load(self.user)
             params = {
                 "login_url": store["doc"]["login"],
-                "login_2fa_url": store["doc"]["login_2fa"],  # TODO sjo: what does defining params do? is this necessary for login_2fa?
                 "reset_url": store["doc"]["reset"]
             }
+            # TODO sjo: what does defining params do? is this necessary for login_2fa?
             if login:
                 is_2fa_login = self.config.api.is_2fa_login
                 if is_2fa_login:
-                    return self.render("template/login_2fa.html", **params)
+                    return self.render("template/login2fa.html", **params)
                 else:  # I think redundant else's make the code more readable
                     return self.render("template/login.html", **params)
             else:

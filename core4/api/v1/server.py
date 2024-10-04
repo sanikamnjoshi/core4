@@ -116,6 +116,8 @@ class CoreApiServer(CoreApiContainer):
         (r'/log/?', LogHandler, None, "LogHandler"),
 
         (r"/login", LoginHandler),
+        # TODO sjo: do I need to add a separate endpoint for login_2fa?
+        (r"/login2fa", LoginHandler),
         (r"/reset", LoginHandler),
         (r"/logout", LogoutHandler),
 
