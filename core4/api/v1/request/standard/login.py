@@ -135,7 +135,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
         # TODO sjo MAJOR: remove the password aspect for SSO users
         # TODO sjo FRONTEND: this is highly highly dependent on the frontend.
 
-        if IS_2FA_LOGIN:
+        if IS_2FA_LOGIN:  # 2fa is enabled in the config
 
             username = self.get_argument("username", default=None)
             domain = username.split("@")[1] if "@" in username else None
@@ -161,15 +161,21 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                     self.logger.info(
                         f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
                     # TODO sjo FRONTEND: this error needs to show on the login page
-            else:  # not an SSO user
+            else:  # is 2FA but not an SSO user
                 pass
                 # TODO sjo FRONT: the password field pops up only if the user is external
                 # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
 
                 user = await self.verify_user()
                 if user:  # valid core4 user
-                    key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry
-                    totp = pyotp.TOTP(key)
+                    key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry ...
+                    # TODO sjo: ... AND it needs to be unique for each user
+                    totp = pyotp.TOTP(key, interval=300) # the token will be valid for 5 minutes instead of the default 30 seconds
+                    # TODO sjo NOTE: code for saving QR code for adding to authenticator app
+                    #import qrcode
+                    #uri = totp.provisioning_uri(user.name, issuer_name="core4")
+                    #img = qrcode.make(uri)
+                    #img.save(f"{user.name}qrcode.png")
                     if totp.verify(input("Enter code: ")):
                         print("Valid code")
                         # TODO sjo 07.10.2024 VERY VERY MAJOR!!! how will our TOTPs ever sync if our system's set to a different timezone???
