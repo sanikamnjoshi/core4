@@ -176,7 +176,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                     #uri = totp.provisioning_uri(user.name, issuer_name="core4")
                     #img = qrcode.make(uri)
                     #img.save(f"{user.name}qrcode.png")
-                    if totp.verify(input("Enter code: ")):
+                    if totp.verify(input("Enter code: ")):  # TODO sjo: verify needs to use the same interval!!! see https://stackoverflow.com/a/61513536
                         print("Valid code")
                         # TODO sjo 07.10.2024 VERY VERY MAJOR!!! how will our TOTPs ever sync if our system's set to a different timezone???
                         # we would need to think about timezones in general!!!
