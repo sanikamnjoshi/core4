@@ -194,20 +194,23 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                         print("Invalid code")
                         return None
         else:
-            user = await self.verify_user()
+            pass
 
-            if user:  # valid core4 user
-                internal_token = self.create_token(user.name)
-                # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
-                self.current_user = user.name
-                self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
-                await user.login()  # updates last_login attrib for a user
-                return internal_token
-                # return external_token
-                # TODO sjo: make the function return both internal and external tokens AND..
-                # TODO sjo: make the calling functions capable of handling both tokens
-            else:  # not a valid core4 user
-                return None
+
+        user = await self.verify_user()
+
+        if user:  # valid core4 user
+            internal_token = self.create_token(user.name)
+            # TODO: we still have to hold on to the internal token!!! this will have to be renamed to internal_token everywhere!!!
+            self.current_user = user.name
+            self.logger.info(f"User {self.current_user} is a core4 user.")  # TODO sjo try catch here
+            await user.login()  # updates last_login attrib for a user
+            return internal_token
+            # return external_token
+            # TODO sjo: make the function return both internal and external tokens AND..
+            # TODO sjo: make the calling functions capable of handling both tokens
+        else:  # not a valid core4 user
+            return None
 
     async def put(self):
         """
