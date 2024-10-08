@@ -167,7 +167,8 @@ class LoginHandler(CoreRequestHandler, MSAuth):
 
                 user = await self.verify_user()
                 if user:  # valid core4 user
-                    key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry ...
+                    key = user.totp_key
+                    #key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry ...
                     # TODO sjo: ... AND it needs to be unique for each user
                     totp = pyotp.TOTP(key)  # initialise TOTP object with the key
 

@@ -44,6 +44,7 @@ class CoreRole(CoreBase):
     * ``password`` (str) - applies only to users and requires an email field
     * ``perm`` (list) - of permissions
     * ``last_login`` (datetime) - automatically updated at login
+    * ``totp_key`` (str) - the key needed to generate and verify this user's timed OTPs (TOTPs)
 
     Note that roles can be assigned hierarchically.
 
@@ -71,6 +72,8 @@ class CoreRole(CoreBase):
             PasswordField("password", **kwargs),
             PermField("perm", **kwargs),
             TimestampField("last_login", **kwargs),
+            StringField("totp_key", **kwargs),  # TODO sjo: had to add this so that the user is recognised as a valid core4 user
+            # TODO sjo QUESTION: does this need to be added elsewhere????
             # QuotaField("quota", **kwargs),
         ]
         self.data = dict([(f.key, f) for f in fields])
