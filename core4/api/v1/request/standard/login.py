@@ -155,12 +155,21 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 if "id_token" in result:
                     external_token = result["id_token"]
                     if "email" in result["id_token_claims"]:
-                        if username == str(result["id_token_claims"]["email"]):
+                        returned_email = str(result["id_token_claims"]["email"])
+                        if username == returned_email:
                             self.logger.info(f"User {username} has been SSO validated")
+                            user = await self.verify_user()
+                        else:
+                            self.logger.warning(f"The returned email {returned_email} does not match the username {username}")
+                            return None
+                    else:
+                        self.logger.warning(f"User {username} has been SSO validated, but no email was returned.")
+                        return None
                 else:
-                    self.logger.info(
-                        f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
-                    # TODO sjo FRONTEND: this error needs to show on the login page
+                    self.logger.warning(f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
+                    return None
+                    # TODO sjo FRONTEND: these errors need to show up on the login page with the additional note "contact core4 admin at <email>"
+
             else:  # is 2FA but not an SSO user
                 # TODO sjo FRONT: the password field pops up only if the user is external
                 # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
@@ -168,6 +177,10 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 user = await self.verify_user()
                 if user:  # valid core4 user
                     key = user.totp_key
+                    if key is None:
+                        self.logger.warning(f"No timed OTP has been set for user {user.name}.")
+                        return None
+
                     #key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry ...
                     # TODO sjo: ... AND it needs to be unique for each user
                     totp = pyotp.TOTP(key)  # initialise TOTP object with the key
