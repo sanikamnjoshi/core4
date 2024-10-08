@@ -170,13 +170,18 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                 if user:  # valid core4 user
                     key = "WMTEZIVL6WEYMTYBVSWIS3E5PDGF3VY7"  # TODO sjo: this has to be pulled from the user's sys.role entry ...
                     # TODO sjo: ... AND it needs to be unique for each user
-                    totp = pyotp.TOTP(key, interval=300) # the token will be valid for 5 minutes instead of the default 30 seconds
+                    totp = pyotp.TOTP(key)  # initialise TOTP object with the key
+
+                    #totp = pyotp.TOTP(key, interval=300) # the token will be valid for 5 minutes instead of the default 30 seconds
                     # TODO sjo NOTE: code for saving QR code for adding to authenticator app
                     #import qrcode
                     #uri = totp.provisioning_uri(user.name, issuer_name="core4")
                     #img = qrcode.make(uri)
                     #img.save(f"{user.name}qrcode.png")
-                    if totp.verify(input("Enter code: ")):  # TODO sjo: verify needs to use the same interval!!! see https://stackoverflow.com/a/61513536
+
+                    # TODO sjo FRONT: there needs to be field to enter the totp on the login page for non-SSO users
+                    # TODO sjo: the qr code for the authenticator app needs to be sent via email (?) for first time TOTP-users --> admin triggered!!
+                    if totp.verify(input("Enter code: ")):  # correct totp
                         print("Valid code")
                         # TODO sjo 07.10.2024 VERY VERY MAJOR!!! how will our TOTPs ever sync if our system's set to a different timezone???
                         # we would need to think about timezones in general!!!
@@ -185,7 +190,7 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                         self.logger.info(f"User {self.current_user} is a core4 user.")
                         await user.login()
                         return internal_token
-                    else:
+                    else:  # wrong totp
                         print("Invalid code")
                         return None
         else:
