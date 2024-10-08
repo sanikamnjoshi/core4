@@ -162,7 +162,6 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                         f"SSO validation failed.\nError: {result['error']}\n descr: {result['error_description']}")
                     # TODO sjo FRONTEND: this error needs to show on the login page
             else:  # is 2FA but not an SSO user
-                pass
                 # TODO sjo FRONT: the password field pops up only if the user is external
                 # TODO sjo QUESTION: do I need to consider is_2fa_login=False here?
 
@@ -193,11 +192,8 @@ class LoginHandler(CoreRequestHandler, MSAuth):
                     else:  # wrong totp
                         print("Invalid code")
                         return None
-        else:
-            pass
-
-
-        user = await self.verify_user()
+        else:  # 2fa is not enabled in the config
+            user = await self.verify_user()
 
         if user:  # valid core4 user
             internal_token = self.create_token(user.name)
